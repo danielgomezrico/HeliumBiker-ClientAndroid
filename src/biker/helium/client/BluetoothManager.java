@@ -18,8 +18,8 @@ import android.content.Intent;
 public abstract class BluetoothManager {
 	
 	private final static int REQUEST_ENABLE_BT = 3;
-	private final static String SERVER_UUID = "cbc995d8-9eca-4a0e-b32d-781e2c314dcf";
-	private final static String SERVER_NAME = "DANIEL-PC";	
+	private final static String SERVER_UUID = "00112233-4455-6677-8899-aabbccddeeff";
+	private final static String SERVER_NAME = "CARLOS-PC";	
 	
 	private BluetoothAdapter mBluetoothAdapter;
 	private BluetoothSocket serverSocket;

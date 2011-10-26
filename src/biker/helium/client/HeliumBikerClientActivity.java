@@ -12,6 +12,9 @@ import android.view.Window;
 import android.view.WindowManager;
 
 public class HeliumBikerClientActivity extends Activity implements AccelerometerListener  {
+	
+	public static enum View{ Main, Game}
+	
 	private BluetoothClient bluetoothClient;
 	private AccelerometerManager accelManager;
 	
@@ -19,13 +22,6 @@ public class HeliumBikerClientActivity extends Activity implements Accelerometer
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        
-        // Set full screen view
-        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, 
-                                         WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
-        
-        setContentView(new DrawableView(this.getBaseContext()));
         
         //setContentView(R.layout.main);
         
@@ -37,6 +33,9 @@ public class HeliumBikerClientActivity extends Activity implements Accelerometer
         try {
 			accelManager = new AccelerometerManager(this);
 		} catch (Exception e) {	}
+        
+        changeView(View.Game);
+
     }
     
     @Override
@@ -57,9 +56,36 @@ public class HeliumBikerClientActivity extends Activity implements Accelerometer
     protected void onPause() {
     	super.onPause();
 
-    	accelManager.stopListen();
-    	bluetoothClient.closeConnection();
+    	if(accelManager!= null){
+    		accelManager.stopListen();
+    	}
+    	if(bluetoothClient != null){
+    		bluetoothClient.closeConnection();
+    	}
     }
+    
+    private void changeView(View view){
+    	switch (view) {
+    	
+		case Main:
+			// Set full screen view
+	        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN, 
+	                                         WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
+	        requestWindowFeature(Window.FEATURE_CONTEXT_MENU);
+			break;
+		case Game:
+	        // Set full screen view
+	        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, 
+	                                         WindowManager.LayoutParams.FLAG_FULLSCREEN);
+	        requestWindowFeature(Window.FEATURE_NO_TITLE);
+	        
+	        setContentView(new DrawableView(this.getBaseContext()));
+			break;
+
+		default:
+			break;
+		}
+    } 
     
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {

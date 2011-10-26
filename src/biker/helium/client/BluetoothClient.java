@@ -43,7 +43,7 @@ public class BluetoothClient extends BluetoothManager {
 	 * @throws Exception
 	 */
 	public void send(MessageType type, float x, float y) throws IOException, Exception{
-		String message = new StringBuilder(type.toString()).append(' ').append(x).append(' ').append(y).toString();
+		String message = new StringBuilder(type.toString()).append(' ').append(y).append(' ').append(x).toString();
 
 		if(message.length() < MESSAGE_SIZE){
 			message = fillMessage(message);

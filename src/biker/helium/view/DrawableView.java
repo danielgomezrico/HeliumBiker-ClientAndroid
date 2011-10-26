@@ -1,48 +1,40 @@
 package biker.helium.view;
 
-import java.util.Observable;
-import java.util.Observer;
-
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.Paint;
-import android.graphics.drawable.ShapeDrawable;
-import android.graphics.drawable.shapes.OvalShape;
-import android.os.Handler;
-import android.os.Message;
 import android.view.MotionEvent;
+import android.view.SurfaceHolder;
+import android.view.SurfaceView;
 import android.view.View;
 import android.view.View.OnTouchListener;
+import android.view.Display;
+import android.view.WindowManager;
 
-
-
-public class DrawableView extends View implements OnTouchListener{
-    
-    private final int initialX = 0;
-    private final int initialY = 0;
+public class DrawableView extends SurfaceView implements OnTouchListener, SurfaceHolder.Callback {
     
     private SlingShot slingShot;
-    
-    public Handler refreshHandler = new Handler(){
-    	@Override  
-    	public void handleMessage(Message msg) {  
-    		DrawableView.this.invalidate();  
-    	}
-    };
-    
+    private SurfaceUpdateThread _updateThread;
 
 	public DrawableView(Context context) {
 		super(context);
 
         this.setOnTouchListener(this);
-		
-        slingShot = new SlingShot(this);
+        
+        Display display = ((WindowManager) context.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
+        slingShot = new SlingShot(getResources(), display.getWidth(), display.getHeight());
+
+        getHolder().addCallback(this);
+        _updateThread = new SurfaceUpdateThread(getHolder(), this);
+        
+        setFocusable(true);
+
 	}
 	
 	@Override
-	public void draw(Canvas canvas) {
-		super.draw(canvas);
+	public void onDraw(Canvas canvas) {
+        canvas.drawColor(Color.BLACK);
+
 		slingShot.draw(canvas);
 	}
 
@@ -52,6 +44,8 @@ public class DrawableView extends View implements OnTouchListener{
 		slingShot.setX2((int) event.getX());
 		slingShot.setY2((int) event.getY());
 
+//		Log.d("P**","Touch");
+		
 		switch (event.getAction() ) { 
 
 		case MotionEvent.ACTION_DOWN:
@@ -63,9 +57,41 @@ public class DrawableView extends View implements OnTouchListener{
 			break;
 		}
 
-		invalidate();
+		//invalidate();
 
 		return true;
+	}
+
+	
+	@Override
+	public void surfaceChanged(SurfaceHolder arg0, int arg1, int arg2, int arg3) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void surfaceCreated(SurfaceHolder arg0) {
+		_updateThread.setRunning(true);
+		_updateThread.start();		
+	}
+
+	@Override
+	public void surfaceDestroyed(SurfaceHolder arg0) {
+	    
+		// we have to tell thread to shut down & wait for it to finish, or else
+	    // it might touch the Surface after we return and explode
+	    boolean retry = true;
+	    _updateThread.setRunning(false);
+	    
+	    while (retry) {
+	        try {
+	        	_updateThread.join();
+	            retry = false;
+	        } catch (InterruptedException e) {
+	            // we will try it again and again...
+	        }
+	    }
+		
 	}
 	
 
