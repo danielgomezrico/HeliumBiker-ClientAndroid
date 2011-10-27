@@ -2,14 +2,17 @@ package biker.helium.view;
 
 import android.graphics.Canvas;
 import android.view.SurfaceHolder;
-
+import android.view.SurfaceView;
+/**
+ *	Call the onDraw of the DrawableView that contains
+ */
 public class SurfaceUpdateThread extends Thread {
 	private SurfaceHolder _surfaceHolder;
 	private DrawableView _drawableView;
     private boolean _run = false;
  
-    public SurfaceUpdateThread(SurfaceHolder surfaceHolder, DrawableView drawableView) {
-        _surfaceHolder = surfaceHolder;
+    public SurfaceUpdateThread( DrawableView drawableView) {
+        _surfaceHolder = ((SurfaceView)drawableView).getHolder();
         _drawableView = drawableView;
     }
  

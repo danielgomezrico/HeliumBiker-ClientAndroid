@@ -11,6 +11,8 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -18,6 +20,7 @@ import android.widget.Toast;
 import biker.helium.Managers.Bluetooth.BluetoothClient;
 import biker.helium.Managers.Bluetooth.IBluetoothObserver;
 import biker.helium.client.R;
+import biker.helium.helpers.UIHelper;
 
 public class BluetoothActivity extends Activity implements IBluetoothObserver {
 
@@ -25,7 +28,7 @@ public class BluetoothActivity extends Activity implements IBluetoothObserver {
 	 * Contains the client that is connected with a bluetooth device that was selected
 	 * by this activity
 	 */
-	public static BluetoothClient bluetoothClient;
+	private static BluetoothClient bluetoothClient;
 	
 	public BluetoothDevice deviceToConnect;
 
@@ -34,7 +37,12 @@ public class BluetoothActivity extends Activity implements IBluetoothObserver {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
+		setTitle("Bluetooth Connection");
 		
+		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, 
+                WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
+        
 		setContentView(R.layout.main);
 	}
 
@@ -54,13 +62,13 @@ public class BluetoothActivity extends Activity implements IBluetoothObserver {
 			e.printStackTrace();
 		}
 		
-		deviceToConnect = null;
+		//deviceToConnect = null;
 		
 		enableButton(R.id.bSearchDevices, true);
-		enableButton(R.id.bConnectDevice, false);
+		enableButton(R.id.bConnectDevice, true);
 		enableProgressBar(false);
 		
-		setText(R.id.tvSelectedDevice, " ...");
+		//setText(R.id.tvSelectedDevice, " ...");
 	}
 	
 	/**
@@ -117,7 +125,7 @@ public class BluetoothActivity extends Activity implements IBluetoothObserver {
 			AlertDialog.Builder dlgAlert  = new AlertDialog.Builder(this);
 
 			dlgAlert.setMessage("This application needs bluetooth enabled to work. The application will be closed");
-			dlgAlert.setTitle("Helium Biker GamePad");
+			dlgAlert.setTitle("Helium Biker");
 			dlgAlert.setPositiveButton("Ok",
 					new DialogInterface.OnClickListener() {
 				public void onClick(DialogInterface dialog, int which) {
@@ -154,10 +162,18 @@ public class BluetoothActivity extends Activity implements IBluetoothObserver {
 			}
 		});
 		AlertDialog alert = builder.create();
-		alert.setCancelable(false);
+//		alert.setCancelable(false);
 		alert.show();		
 	}
 
+	/**
+	 * Gets  the BluetoothClient object with the actual connection
+	 * @return
+	 */
+	public static BluetoothClient getBluetoothClient(){
+		return bluetoothClient;
+	}
+	
 	/**
 	 * Event Button bSearchDevicesCLick event
 	 * @param view
@@ -197,6 +213,9 @@ public class BluetoothActivity extends Activity implements IBluetoothObserver {
 			} catch (IOException e) {
 				// TODO Imprimir un mensaje con el error
 				Toast.makeText(getApplicationContext(), "There was an error connecting with the bluetooth device", Toast.LENGTH_LONG);
+				
+				UIHelper.showMessageDialog("Error connecting with the bluetooth pc", "Error", false, this);
+				
 				enableButton(R.id.bSearchDevices, true);
 				enableButton(R.id.bConnectDevice, true);
 				enableProgressBar(false);

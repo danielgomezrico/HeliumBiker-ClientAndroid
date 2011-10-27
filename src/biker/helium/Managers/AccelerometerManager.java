@@ -35,7 +35,7 @@ public class AccelerometerManager implements SensorEventListener{
         mSensorManager = (SensorManager)activity.getSystemService(Activity.SENSOR_SERVICE);
         mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         
-        isRegistered = true;
+        isRegistered = false;
 	}
 
 	@Override

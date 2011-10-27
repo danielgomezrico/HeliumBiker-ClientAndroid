@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
-    <string name="hello">Hello World, HeliumBikerClientActivity!</string>
-    <string name="app_name">HeliumBikerClient</string>
+    <string name="app_name">H.B. GamePad</string>
+    <color name="background_color">#3FA9F5</color>
 
 </resources>

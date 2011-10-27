@@ -48,6 +48,7 @@ public abstract class BluetoothManager {
 			        }
 			        
 			        if(BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)){
+			        	mBluetoothAdapter.cancelDiscovery();
 			        	mainActivity.deviceDiscoveringFinished(arrayListDevices);
 			        }
 			    }

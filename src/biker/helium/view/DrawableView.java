@@ -3,38 +3,41 @@ package biker.helium.view;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.view.Display;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.View.OnTouchListener;
-import android.view.Display;
 import android.view.WindowManager;
-
+import biker.helium.client.R;
+import biker.helium.view.slingshot.SlingShot;
+ 
 public class DrawableView extends SurfaceView implements OnTouchListener, SurfaceHolder.Callback {
     
     private SlingShot slingShot;
-    private SurfaceUpdateThread _updateThread;
+    private SurfaceUpdateThread updateThread;
+    private int backgroundColor;
 
 	public DrawableView(Context context) {
 		super(context);
 
-        this.setOnTouchListener(this);
-        
         Display display = ((WindowManager) context.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
         slingShot = new SlingShot(getResources(), display.getWidth(), display.getHeight());
 
         getHolder().addCallback(this);
-        _updateThread = new SurfaceUpdateThread(getHolder(), this);
+        updateThread = new SurfaceUpdateThread(this);
         
+        setOnTouchListener(this);
         setFocusable(true);
-
+        
+        backgroundColor = getResources().getColor(R.color.background_color);
 	}
 	
 	@Override
 	public void onDraw(Canvas canvas) {
-        canvas.drawColor(Color.CYAN);
-
+        canvas.drawColor(backgroundColor);
+//		canvas.drawColor(Color.BLUE);
 		slingShot.draw(canvas);
 	}
 
@@ -69,8 +72,8 @@ public class DrawableView extends SurfaceView implements OnTouchListener, Surfac
 
 	@Override
 	public void surfaceCreated(SurfaceHolder arg0) {
-		_updateThread.setRunning(true);
-		_updateThread.start();		
+		updateThread.setRunning(true);
+		updateThread.start();		
 	}
 
 	@Override
@@ -79,11 +82,11 @@ public class DrawableView extends SurfaceView implements OnTouchListener, Surfac
 		// we have to tell thread to shut down & wait for it to finish, or else
 	    // it might touch the Surface after we return and explode
 	    boolean retry = true;
-	    _updateThread.setRunning(false);
+	    updateThread.setRunning(false);
 	    
 	    while (retry) {
 	        try {
-	        	_updateThread.join();
+	        	updateThread.join();
 	            retry = false;
 	        } catch (InterruptedException e) {
 	            // we will try it again and again...

@@ -11,6 +11,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import biker.helium.Managers.AccelerometerManager;
 import biker.helium.Managers.IAccelerometerObserver;
+import biker.helium.Managers.Bluetooth.BluetoothClient;
 import biker.helium.Managers.Bluetooth.BluetoothClient.MessageType;
 import biker.helium.view.DrawableView;
 
@@ -22,7 +23,8 @@ public class GameActivity extends Activity implements IAccelerometerObserver  {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        
+       
+		setTitle("Game Control");
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, 
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -91,7 +93,10 @@ public class GameActivity extends Activity implements IAccelerometerObserver  {
 	@Override
 	public void changeAcceleromether(float x, float y) {
 		try {
-			BluetoothActivity.bluetoothClient.send(MessageType.A, x, y);
+			BluetoothClient bluetoothClient = BluetoothActivity.getBluetoothClient();
+			if(bluetoothClient != null){
+				bluetoothClient.send(MessageType.A, y, x);//Becouse the cellphone is landscape
+			}
 		} 
 		catch (IOException e) {} 
 		catch (Exception e) {}

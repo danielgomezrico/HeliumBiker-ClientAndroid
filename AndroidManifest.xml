@@ -5,29 +5,28 @@
     android:versionName="1.0" >
 
     <uses-sdk android:minSdkVersion="8" />
-    
+
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
     <uses-permission android:name="android.permission.BLUETOOTH" />
-    
+
     <application
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name" >
-        
         <activity
             android:label="@string/app_name"
-            android:name="biker.helium.activities.GameActivity" >
+            android:name="biker.helium.activities.GameActivity"
+            android:screenOrientation="portrait" >
         </activity>
-        
         <activity
             android:label="@string/app_name"
-            android:name="biker.helium.activities.BluetoothActivity" >
+            android:name="biker.helium.activities.BluetoothActivity"
+            android:screenOrientation="portrait" >
             <intent-filter >
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        
     </application>
 
 </manifest>
