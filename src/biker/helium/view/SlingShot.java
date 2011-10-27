@@ -38,29 +38,32 @@ public class SlingShot{
 		new Thread(new Runnable() {
 			@Override
 			public void run() {
-				int time = (int) (y2+x2)/10;//(INITIAL_X - x2) + (INITIAL_Y - y2);
 				
-				double angle = calcAngleDirector();
-				double offset = 2;
-				
+				double angle = calcDirectorAngle();
+				double offsetX = 1;
+				double offsetY = 1;
+				int delay = (int) (y2)/10;//4 Cuadrant
+
+				if(x2 > INITIAL_X){
+					offsetX *= -1;
+					//delay = (int)(y2)/10;
+				}
+
 				while(animate){
 
-					if(x2 < INITIAL_X){
-						x2 = x2 + (float)( Math.cos(angle) * offset);
-					}
+					x2 += (float)( Math.cos(angle) * offsetX);
 
-					if(y2 < INITIAL_Y){
-						y2 = y2 + (float)( Math.sin(angle) * offset);
-					}
+					y2 += (float)( Math.sin(angle) * offsetY);
 
-					if(x2 == INITIAL_X && y2 == INITIAL_Y){
+					if(x2 >= INITIAL_X && y2 >= INITIAL_Y){
+						
 						y2 = INITIAL_Y;
 						x2 = INITIAL_X;
 						animate = false;
 					}					
 
 					try {
-						Thread.currentThread().sleep(time);
+						Thread.sleep(delay);
 					} catch (InterruptedException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -70,10 +73,14 @@ public class SlingShot{
 		}).start();
 	}
 	
-	public double calcAngleDirector(){
+	public double calcDirectorAngle(){
 
-		double angle = Math.atan2(INITIAL_Y - y2,INITIAL_X - x2);  //* 180/Math.PI;//+ (Math.PI);
-//		angle =  Math.round(angle/Math.PI * 180);
+		double angle = Math.atan2( INITIAL_Y - y2, INITIAL_X - x2 );  //* 180/Math.PI;//+ (Math.PI);
+		
+		if(angle > Math.toRadians(90)){
+			angle = Math.toRadians(180) - angle;
+		}
+		
 		return angle;
 	}
 
@@ -105,12 +112,14 @@ public class SlingShot{
 	}
 
 	public void setY2(float y2) {
-		this.y2 = y2;
+		if(y2 < INITIAL_Y){
+			this.y2 = y2;
+		}
 	}
 
 	
 	
-	public boolean isCheckMovement() {
+	public boolean isAnimating() {
 		return animate;
 	}
 

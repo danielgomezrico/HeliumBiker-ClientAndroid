@@ -33,18 +33,16 @@ public class DrawableView extends SurfaceView implements OnTouchListener, Surfac
 	
 	@Override
 	public void onDraw(Canvas canvas) {
-        canvas.drawColor(Color.BLACK);
+        canvas.drawColor(Color.CYAN);
 
 		slingShot.draw(canvas);
 	}
 
 	@Override
 	public boolean onTouch(View view, MotionEvent event) {
-
-		slingShot.setX2((int) event.getX());
-		slingShot.setY2((int) event.getY());
-
-//		Log.d("P**","Touch");
+		
+		slingShot.setX2(event.getX());
+		slingShot.setY2(event.getY());
 		
 		switch (event.getAction() ) { 
 
