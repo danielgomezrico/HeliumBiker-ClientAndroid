@@ -41,8 +41,9 @@ public class BluetoothActivity extends Activity implements IBluetoothObserver {
 		
 		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, 
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
+		requestWindowFeature(Window.FEATURE_NO_TITLE);
         
+
         try {
 			bluetoothClient = new BluetoothClient(this);
 		} catch (IOException e) {

@@ -83,8 +83,23 @@ public abstract class BluetoothManager {
 	 */
 	protected BluetoothSocket connectDevice(BluetoothDevice device) throws IOException{
     	BluetoothSocket serverSocket = device.createRfcommSocketToServiceRecord(UUID.fromString(SERVER_UUID));
-    	serverSocket.connect();
-    	return serverSocket;
+//    	Method m;
+//    	BluetoothSocket serverSocket = null;
+//		try {
+//			m = device.getClass().getMethod("createRfcommSocket", new Class[] {int.class});
+//			serverSocket = (BluetoothSocket) m.invoke(device, 1);
+//		} catch (SecurityException e) {
+//		} catch (NoSuchMethodException e) {
+//		} catch (IllegalArgumentException e) {
+//		} catch (IllegalAccessException e) {
+//		} catch (InvocationTargetException e) {
+//		}
+		if(serverSocket != null){
+			serverSocket.connect();
+			return serverSocket;
+		}else{
+			return null;
+		}
 	}
 	
 	/**
