@@ -61,7 +61,6 @@ public class GameView extends SurfaceView implements OnTouchListener, SurfaceHol
 			slingShot.setNewX(x);
 			slingShot.setNewY(y);
 			
-//			TODO:Descomentar
 			BluetoothActivity.sendMessage(MessageType.P, (DISPLAY_WIDTH/2) - x, (DISPLAY_HEIGHT/2) - y);
 			
 			break;
@@ -70,8 +69,6 @@ public class GameView extends SurfaceView implements OnTouchListener, SurfaceHol
 			slingShot.startBackAnimation();
 			break;
 		}
-
-		//invalidate();
 
 		return true;
 	}

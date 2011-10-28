@@ -43,7 +43,6 @@ public class GameActivity extends Activity implements IAccelerometerObserver  {
 		} catch (Exception e) {	}
         
         setContentView(new GameView(this.getBaseContext()));
-
     }
         
     @Override
@@ -53,6 +52,7 @@ public class GameActivity extends Activity implements IAccelerometerObserver  {
     	if(accelManager != null){
     		accelManager.startListen();
     	}
+    	
     	
     	//TODO:Enviar mensaje de resumir por bluetooth
     }
@@ -107,7 +107,9 @@ public class GameActivity extends Activity implements IAccelerometerObserver  {
 		
 		boolean success = BluetoothActivity.sendMessage(MessageType.A, y, x);
 
-		if(!(success && attemptedShowMessage)){//If not successfully sended and it's the first intend to show this message
+		if(!(success || attemptedShowMessage)){//If not successfully sended and it's the first intend to show this message
+			
+			attemptedShowMessage = true;
 			
 			AlertDialog.Builder builder = new AlertDialog.Builder(this);
 			builder.setMessage("The bluetooth connection is lost. Correct the connection problem and connect again")
@@ -122,7 +124,7 @@ public class GameActivity extends Activity implements IAccelerometerObserver  {
 			alert.setCancelable(false);
 			alert.show();
 			
-			attemptedShowMessage = true;
+			
 		}
 
 	}

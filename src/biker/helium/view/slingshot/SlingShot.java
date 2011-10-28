@@ -20,7 +20,8 @@ public class SlingShot{
 	public final int SCREEN_WIDTH, SCREEN_HEIGHT;
 
 	public Resources resources;
-	private Paint paint;
+	private Paint paintLines;
+	private Paint paintLineGuide;
 	private boolean isAnimating;
 	
 	/**
@@ -32,11 +33,12 @@ public class SlingShot{
 	private ArrayList<Stone> arrayListThrowedStones;
 
 	public SlingShot(Resources resources, int screenWidth, int screenHeight){
-		INITIAL_X = screenWidth/2;
-		INITIAL_Y = screenHeight/2;
 
 		SCREEN_WIDTH = screenWidth;
 		SCREEN_HEIGHT = screenHeight;
+		
+		INITIAL_X = screenWidth/2;
+		INITIAL_Y = screenHeight/2;
 		
 		newX = INITIAL_X - 10;
 		newY = INITIAL_Y - 10;
@@ -45,10 +47,15 @@ public class SlingShot{
 		
 		isAnimating = false;
 				
-		paint = new Paint();
-		paint.setColor(resources.getColor(R.color.line_color));
-		paint.setAntiAlias(true);
-		paint.setStrokeWidth(2.0f);
+		paintLines = new Paint();
+		paintLines.setColor(resources.getColor(R.color.line_color));
+		paintLines.setAntiAlias(true);
+		paintLines.setStrokeWidth(2.0f);
+		
+		paintLineGuide = new Paint();
+		paintLineGuide.setColor(resources.getColor(R.color.line_color));
+		paintLineGuide.setAntiAlias(true);
+		paintLineGuide.setStrokeWidth(10.0f);
 		
 //		stone = BitmapFactory.decodeResource(resources, R.drawable.stone);
 		arrayListThrowedStones = new ArrayList<Stone>();
@@ -84,11 +91,14 @@ public class SlingShot{
 			}
 		}
 		
+		canvas.drawPoint(INITIAL_X, 15, paintLineGuide);
+		
 		if(pickeableStone != null){
-			canvas.drawLine(INITIAL_X, INITIAL_Y, newX, newY, paint);
-			canvas.drawPoint(INITIAL_X, INITIAL_Y, paint);
-			canvas.drawLine(INITIAL_X + 20, INITIAL_Y, INITIAL_X - 10, INITIAL_Y - 10, paint);
-			canvas.drawLine(INITIAL_X + 20, INITIAL_Y, INITIAL_X + 10, INITIAL_Y - 10, paint);
+			canvas.drawLine(INITIAL_X + 10, INITIAL_Y, newX+10, newY, paintLines);
+			canvas.drawLine(INITIAL_X, INITIAL_Y, newX, newY, paintLines);
+			
+			//canvas.drawLine(INITIAL_X , INITIAL_Y + 70, INITIAL_X - 10, INITIAL_Y + 30, paint);
+			//canvas.drawLine(INITIAL_X , INITIAL_Y + 70, INITIAL_X + 10, INITIAL_Y + 30, paint);
 
 			pickeableStone.draw(canvas);
 		}
@@ -117,7 +127,7 @@ public class SlingShot{
 					//Calc movement variables
 					double angle = calcDirectorAngle();
 					double operator = 1; //Says if must plus or substract for the newX
-					int delay = 2;
+					int delay = 1;
 	
 					if(newX > INITIAL_X){
 						operator *= -1;

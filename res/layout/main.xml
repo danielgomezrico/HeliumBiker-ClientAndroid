@@ -47,29 +47,28 @@
             android:layout_height="wrap_content"
             android:visibility="visible" />
 
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:orientation="horizontal"
-                android:paddingTop="30dip" >
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:paddingTop="30dip" >
 
-                <Button
-                    android:id="@+id/bSearchDevices"
-                    android:layout_width="120dip"
-                    android:layout_height="50dip"
-                    android:onClick="bSearchDevicesClick"
-                    android:text="Search PC" />
+            <Button
+                android:id="@+id/bSearchDevices"
+                android:layout_width="120dip"
+                android:layout_height="50dip"
+                android:onClick="bSearchDevicesClick"
+                android:text="Search PC" />
 
-                <Button
-                    android:id="@+id/bConnectDevice"
-                    android:layout_width="120dip"
-                    android:layout_height="50dip"
-                    android:enabled="false"
-                    android:onClick="bConnectClick"
-                    android:text="Connect to PC" />
-            </LinearLayout>
-
+            <Button
+                android:id="@+id/bConnectDevice"
+                android:layout_width="120dip"
+                android:layout_height="50dip"
+                android:enabled="false"
+                android:onClick="bConnectClick"
+                android:text="Connect to PC" />
+        </LinearLayout>
     </LinearLayout>
 
 </LinearLayout>
