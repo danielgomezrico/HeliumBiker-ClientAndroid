@@ -1,20 +1,20 @@
 package biker.helium.view.slingshot;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import android.content.res.Resources;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Paint;
 import biker.helium.Managers.Bluetooth.BluetoothClient.MessageType;
 import biker.helium.activities.BluetoothActivity;
+import biker.helium.client.R;
 
 public class SlingShot{
 	public static final float BORDER_OFFSET = 15;
 	public static final int TIME_NEW_PICKEABLE_STONE = 500;//ms
+	
 	
 	public final float INITIAL_X, INITIAL_Y;
 	public final int SCREEN_WIDTH, SCREEN_HEIGHT;
@@ -22,6 +22,10 @@ public class SlingShot{
 	public Resources resources;
 	private Paint paint;
 	private boolean isAnimating;
+	
+	/**
+	 * x -> y and y -> x because we are using the window in portrait but incline manually the device
+	 */
 	private float newX, newY;
 	private Stone pickeableStone;
 	private boolean stoneThrowed;//If the stone had been threw actually
@@ -42,7 +46,9 @@ public class SlingShot{
 		isAnimating = false;
 				
 		paint = new Paint();
-		paint.setColor(Color.WHITE);
+		paint.setColor(resources.getColor(R.color.line_color));
+		paint.setAntiAlias(true);
+		paint.setStrokeWidth(2.0f);
 		
 //		stone = BitmapFactory.decodeResource(resources, R.drawable.stone);
 		arrayListThrowedStones = new ArrayList<Stone>();
@@ -70,6 +76,8 @@ public class SlingShot{
 	}
 
 	public void draw(Canvas canvas){
+		try{
+			
 		synchronized (arrayListThrowedStones) {
 			for (Stone stone : arrayListThrowedStones) {
 				stone.draw(canvas);
@@ -78,8 +86,16 @@ public class SlingShot{
 		
 		if(pickeableStone != null){
 			canvas.drawLine(INITIAL_X, INITIAL_Y, newX, newY, paint);
+			canvas.drawPoint(INITIAL_X, INITIAL_Y, paint);
+			canvas.drawLine(INITIAL_X + 20, INITIAL_Y, INITIAL_X - 10, INITIAL_Y - 10, paint);
+			canvas.drawLine(INITIAL_X + 20, INITIAL_Y, INITIAL_X + 10, INITIAL_Y - 10, paint);
 
 			pickeableStone.draw(canvas);
+		}
+	
+		}catch(Exception e){
+//			TODO:Check if this exception can be throwed
+//			Log.d("**P","BUM!!!!!");
 		}
 	}
 
@@ -114,19 +130,18 @@ public class SlingShot{
 						
 						pickeableStone.setNewXNewY(newX, newY);
 						
-						if(newX >= INITIAL_X && INITIAL_Y + newY >= 0){//End of pull area
+						if(newY >= INITIAL_Y && INITIAL_X + newX >= 0){//End of pull area
 
 							pickeableStone.startBackAnimation(angle, delay, operator);
 							arrayListThrowedStones.add(pickeableStone);
-							pickeableStone = null;
-	
+							
+							synchronized (pickeableStone) {
+								pickeableStone = null;
+							}
+							
 							scheduleNewStone();
 							
-							try {
-								BluetoothActivity.sendMessage(MessageType.S, INITIAL_X - threwX, INITIAL_Y - threwY);
-							} catch (IOException e) {
-//								GameActivity already manage this error
-							} 
+							BluetoothActivity.sendMessage(MessageType.S, INITIAL_X - threwX, INITIAL_Y - threwY);
 							
 							isAnimating = false;
 						}					

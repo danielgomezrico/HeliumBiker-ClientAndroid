@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">H.B. GamePad</string>
-    <color name="background_color">#3FA9F5</color>
-
+    <string name="app_name">GamePad HB</string>
+    <color name="background_color">#E9F8FF</color>
+    <color name="line_color">#8B8B83</color>
+	<color name="textview_info">#000</color>
+        
 </resources>

@@ -1,45 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
-<TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     android:background="@drawable/background"
-    android:gravity="center"
+    android:gravity="bottom"
     android:orientation="vertical" >
 
     <!-- android:background="@color/background_color" -->
 
-    <TableRow
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
         android:gravity="center"
-        android:paddingBottom="10dip"
+        android:orientation="vertical"
         android:paddingTop="200dip" >
-
-        <LinearLayout
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
-            android:gravity="center"
-            android:orientation="vertical" >
-
-            <Button
-                android:id="@+id/bSearchDevices"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:onClick="bSearchDevicesClick"
-                android:paddingRight="10dip"
-                android:text="Search PC" />
-
-            <ProgressBar
-                android:id="@+id/progressBar"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:paddingRight="10dip"
-                android:visibility="invisible" />
-
-        </LinearLayout>
-    </TableRow>
-
-    <TableRow
-        android:gravity="center"
-        android:paddingBottom="10dip" >
 
         <LinearLayout
             android:layout_width="wrap_content"
@@ -48,32 +22,54 @@
             android:orientation="horizontal" >
 
             <TextView
-                android:id="@+id/tvInfo"
+                android:id="@+id/tvInfoDevice"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Selected:"
-                android:textAppearance="?android:attr/textAppearanceLarge" />
+                android:paddingBottom="20dip"
+                android:paddingRight="5dip"
+                android:text="PC:"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:textColor="@color/textview_info" />
 
             <TextView
                 android:id="@+id/tvSelectedDevice"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text=" ..."
-                android:textAppearance="?android:attr/textAppearanceLarge" />
+                android:paddingBottom="20dip"
+                android:text=""
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:textColor="@color/textview_info" />
         </LinearLayout>
-    </TableRow>
 
-    <TableRow
-        android:gravity="center"
-        android:paddingBottom="30dip" >
-
-        <Button
-            android:id="@+id/bConnectDevice"
+        <ProgressBar
+            android:id="@+id/progressBar"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:enabled="false"
-            android:onClick="bConnectClick"
-            android:text="Connect to PC" />
-    </TableRow>
+            android:visibility="visible" />
 
-</TableLayout>
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:orientation="horizontal"
+                android:paddingTop="30dip" >
+
+                <Button
+                    android:id="@+id/bSearchDevices"
+                    android:layout_width="120dip"
+                    android:layout_height="50dip"
+                    android:onClick="bSearchDevicesClick"
+                    android:text="Search PC" />
+
+                <Button
+                    android:id="@+id/bConnectDevice"
+                    android:layout_width="120dip"
+                    android:layout_height="50dip"
+                    android:enabled="false"
+                    android:onClick="bConnectClick"
+                    android:text="Connect to PC" />
+            </LinearLayout>
+
+    </LinearLayout>
+
+</LinearLayout>

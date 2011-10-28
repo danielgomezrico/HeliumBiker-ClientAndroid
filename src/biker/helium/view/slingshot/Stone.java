@@ -3,15 +3,12 @@ package biker.helium.view.slingshot;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Paint;
 import biker.helium.client.R;
 
 public class Stone {
 	public final float INITIAL_X, INITIAL_Y;
 	public final int SCREEN_WIDTH, SCREEN_HEIGHT;
 
-	private Paint paint;
 	private boolean animate;
 	private float newX, newY;
 	private Bitmap bStone;
@@ -31,10 +28,7 @@ public class Stone {
 
 		this.bStone = BitmapFactory.decodeResource(slingshot.resources, R.drawable.stone) ;
 		
-		this.slingshot = slingshot;
-
-		paint = new Paint();
-		paint.setColor(Color.WHITE);		
+		this.slingshot = slingshot;	
 	}
 
 	public void setNewX(float newX) {

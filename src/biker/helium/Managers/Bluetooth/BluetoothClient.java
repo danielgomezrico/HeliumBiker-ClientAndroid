@@ -44,32 +44,14 @@ public class BluetoothClient extends BluetoothManager {
 	 * @throws IOException
 	 * @throws Exception
 	 */
-	public void send(MessageType type, float x, float y) throws IOException{
+	public boolean send(MessageType type, float x, float y){
 		String message = new StringBuilder(type.toString()).append(' ').append(y).append(' ').append(x).toString();
 
 		if(message.length() < MESSAGE_SIZE){
 			message = fillMessage(message);
 		}
 
-		sendMessage(message);
+		return sendMessage(message);
 	}
 	
-	/**
-	 * Send a message to the connected device
-	 * @param type type type of the message
-	 * @param x coordinate of slingshot release
-	 * @param y coordinate of slingshot release
-	 * @throws IOException
-	 * @throws Exception
-	 */
-	public void send(MessageType type, int x, int y) throws IOException, Exception{
-		String message = new StringBuilder(type.toString()).append(' ').append(x).append(' ').append(y).toString();
-
-		if(message.length() < MESSAGE_SIZE){
-			message = fillMessage(message);
-		}
-
-		sendMessage(message);
-	}
-
 }

@@ -1,7 +1,6 @@
 package biker.helium.Managers.Bluetooth;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.UUID;
@@ -23,15 +22,15 @@ public abstract class BluetoothManager {
 	
 	private final static int REQUEST_ENABLE_BT = 3;
 	private final static String SERVER_UUID = "00112233-4455-6677-8899-aabbccddeeff";
-//	private final static String SERVER_NAME = "CARLOS-PC";	
 	
 	private IBluetoothObserver mainActivity;
 	
 	private BluetoothAdapter mBluetoothAdapter;
-	private ArrayList<BluetoothDevice> arrayListDevices;
 	private BluetoothSocket serverSocket;
+	private ArrayList<BluetoothDevice> arrayListDevices;
 	private OutputStream outputStream;
-	private int connectionTries;
+	
+	private int connectionAttempts;//Counts the number of failure attempts to send a message
 
 	
 	// Create a BroadcastReceiver for ACTION_FOUND and ACTION_DISCOVERY_FINISHED
@@ -63,7 +62,9 @@ public abstract class BluetoothManager {
 	
 	public BluetoothManager(IBluetoothObserver mainActivity) throws IOException{
 		mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-		connectionTries = 0;
+		
+		connectionAttempts = 0;
+		
 		this.mainActivity = mainActivity;
 		
 		if (mBluetoothAdapter != null) {
@@ -74,6 +75,12 @@ public abstract class BluetoothManager {
 		}
 	}
 	
+	/**
+	 * Create the socket connected to the device
+	 * @param device
+	 * @return socket connected
+	 * @throws IOException
+	 */
 	protected BluetoothSocket connectDevice(BluetoothDevice device) throws IOException{
     	BluetoothSocket serverSocket = device.createRfcommSocketToServiceRecord(UUID.fromString(SERVER_UUID));
     	serverSocket.connect();
@@ -86,25 +93,30 @@ public abstract class BluetoothManager {
 	 * @throws Exception
 	 * @throws IOException
 	 */
-	protected void sendMessage(String message) throws IOException {
+	protected boolean sendMessage(String message){
+		//There will be different threads calling this method and outputStream change inside
 		synchronized (this) {
 			try{
-				if(outputStream != null){
+				if(outputStream != null){ //If there's any outputStream with connection enabled
 					byte[] buffer = message.getBytes();
 
 					outputStream.write(buffer);
-					connectionTries = 0;
+					connectionAttempts = 0;
+					
+					return true;
+				}else{
+					return false;
 				}
 			}catch (IOException e) {
-				//closeConnection();
-				connectionTries++;
+				connectionAttempts++;//Add one connection attemp
 
-				if(connectionTries == 5){
-					outputStream = null;
+				if(connectionAttempts == 5){//There are 5 attempts to be sure that the connection was lost
+					outputStream = null; //Empty the outputStream becouse the connection is lost
+					return false;
 				}else{
-					//throw e;
+					return true;
 				}
-			}
+			}			
 		}
 	}
 	
@@ -120,7 +132,6 @@ public abstract class BluetoothManager {
 		IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
 		filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
 		((Activity)mainActivity).registerReceiver(devicesSearcher, filter); // Don't forget to unregister during onDestroy
-	
 		
 		mBluetoothAdapter.startDiscovery();
 	}
@@ -131,13 +142,12 @@ public abstract class BluetoothManager {
 	 * @throws IOException 
 	 */
 	public void manageConnection(BluetoothDevice server) throws IOException{
-		if(outputStream == null && serverSocket == null && mBluetoothAdapter.isEnabled()){
+		
+		if(mBluetoothAdapter.isEnabled()){
 			if(server != null){
-
 				serverSocket = connectDevice(server);
 				
 				if(serverSocket != null){
-				
 					outputStream = serverSocket.getOutputStream();
 					
 				}else{
@@ -165,18 +175,10 @@ public abstract class BluetoothManager {
 				outputStream = null;
 			} catch (IOException e) {}
 		}
-
-//		if(inputStream != null){
-//			try {
-//				inputStream.close();
-//				inputStream = null;
-//			} catch (IOException e) {}
-//		}
 		
 		if(serverSocket != null){
 			try {
 				serverSocket.close();
-				serverSocket = null;
 			} catch (IOException e) {}
 		}
 		

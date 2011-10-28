@@ -1,7 +1,5 @@
 package biker.helium.activities;
 
-import java.io.IOException;
-
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
@@ -12,11 +10,21 @@ import android.view.WindowManager;
 import biker.helium.Managers.Bluetooth.BluetoothClient.MessageType;
 import biker.helium.Managers.acceleromether.AccelerometerManager;
 import biker.helium.Managers.acceleromether.IAccelerometerObserver;
-import biker.helium.view.DrawableView;
+import biker.helium.view.GameView;
 
 public class GameActivity extends Activity implements IAccelerometerObserver  {
 	
 	private AccelerometerManager accelManager;
+	
+	/**
+	 * Used to control the times that the GameActivity shows a message in changeAcceleromether(...)
+	 * in case that the message was not sended successfully thought bluetooth
+	 * (only one message).
+	 * 
+	 * This is because the changeAcceleromether is called so much times and faster and if 
+	 * sending the message we get an error it will try to show so much messages and crash
+	 */
+	private boolean attemptedShowMessage;
 	
     /** Called when the activity is first created. */
     @Override
@@ -27,12 +35,14 @@ public class GameActivity extends Activity implements IAccelerometerObserver  {
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, 
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
+        
+        attemptedShowMessage = false;
 
         try {
 			accelManager = new AccelerometerManager(this);
 		} catch (Exception e) {	}
         
-        setContentView(new DrawableView(this.getBaseContext()));
+        setContentView(new GameView(this.getBaseContext()));
 
     }
         
@@ -74,13 +84,11 @@ public class GameActivity extends Activity implements IAccelerometerObserver  {
         	       .setCancelable(false)
         	       .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
         	           public void onClick(DialogInterface dialog, int id) {
-        	               //moveTaskToBack(true);
         	        	   finish();
         	           }
         	       })
         	       .setNegativeButton("No", new DialogInterface.OnClickListener() {
         	           public void onClick(DialogInterface dialog, int id) {
-        	               //moveTaskToBack(false);
         	               dialog.cancel();
         	           }
         	       });
@@ -96,24 +104,28 @@ public class GameActivity extends Activity implements IAccelerometerObserver  {
     
 	@Override
 	public void changeAcceleromether(float x, float y) {
-		try {
-			BluetoothActivity.sendMessage(MessageType.A, y, x);
-		} catch (IOException e) {
+		
+		boolean success = BluetoothActivity.sendMessage(MessageType.A, y, x);
+
+		if(!(success && attemptedShowMessage)){//If not successfully sended and it's the first intend to show this message
+			
 			AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        	builder.setMessage("The connection is lost")
-        	       .setCancelable(false)
-        	       .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-        	           public void onClick(DialogInterface dialog, int id) {
-        	               //moveTaskToBack(true);
-        	        	   finish();
-        	           }
-        	       });
-        	
-        	AlertDialog alert = builder.create();
-        	alert.setCancelable(false);
+			builder.setMessage("The bluetooth connection is lost. Correct the connection problem and connect again")
+			.setCancelable(false)
+			.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+				public void onClick(DialogInterface dialog, int id) {
+					finish();
+				}
+			});
+
+			AlertDialog alert = builder.create();
+			alert.setCancelable(false);
 			alert.show();
+			
+			attemptedShowMessage = true;
 		}
+
 	}
 
-    
+
 }

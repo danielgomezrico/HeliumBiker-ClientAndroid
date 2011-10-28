@@ -8,10 +8,10 @@ import android.view.SurfaceView;
  */
 public class SurfaceUpdateThread extends Thread {
 	private SurfaceHolder _surfaceHolder;
-	private DrawableView _drawableView;
+	private GameView _drawableView;
     private boolean _run = false;
  
-    public SurfaceUpdateThread( DrawableView drawableView) {
+    public SurfaceUpdateThread( GameView drawableView) {
         _surfaceHolder = ((SurfaceView)drawableView).getHolder();
         _drawableView = drawableView;
     }

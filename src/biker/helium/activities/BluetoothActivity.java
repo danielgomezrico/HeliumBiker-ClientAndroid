@@ -43,6 +43,12 @@ public class BluetoothActivity extends Activity implements IBluetoothObserver {
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         
+        try {
+			bluetoothClient = new BluetoothClient(this);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+		}
+        
 		setContentView(R.layout.main);
 	}
 
@@ -54,13 +60,16 @@ public class BluetoothActivity extends Activity implements IBluetoothObserver {
 	}
 	
 	private void init(){
+//		
+//		try {
+//			bluetoothClient = null;
+//			bluetoothClient = new BluetoothClient(this);
+//		} catch (IOException e) {
+//			// TODO Auto-generated catch block
+//		}
 		
-		try {
-			bluetoothClient = null;
-			bluetoothClient = new BluetoothClient(this);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-		}
+//		TODO:No se sabe si dejarlo o no
+		bluetoothClient.closeConnection();
 		
 		enableButton(R.id.bSearchDevices, true);
 		enableProgressBar(false);
@@ -88,6 +97,7 @@ public class BluetoothActivity extends Activity implements IBluetoothObserver {
 		enableProgressBar(false);
 	}
 	
+//	********* Views modifications *********
 	/**
 	 * Enable or disable the Button with id = id (R...)
 	 * @param id
@@ -118,6 +128,8 @@ public class BluetoothActivity extends Activity implements IBluetoothObserver {
 		textView.setText(text);
 	}
 
+//	**************************************
+	
 	/**
 	 * Called when the intent to enable bluetooth ends
 	 */
@@ -137,18 +149,11 @@ public class BluetoothActivity extends Activity implements IBluetoothObserver {
 
 			dlgAlert.setCancelable(false);
 			dlgAlert.create().show();
+		}else{
+			
 		}
 
 		super.onActivityResult(requestCode, resultCode, data);
-	}
-
-	@Override
-	protected void onDestroy() {
-		super.onDestroy();
-		
-		if(bluetoothClient != null){
-			bluetoothClient.closeConnection();
-		}
 	}
 	
 	@Override
@@ -176,12 +181,23 @@ public class BluetoothActivity extends Activity implements IBluetoothObserver {
 //		alert.setCancelable(false);
 		alert.show();		
 	}
+	
+	/**
+	 * Send a message to the bluetooth server
+	 * @param type
+	 * @param x
+	 * @param y
+	 * @return true if successfully false if not
+	 */
 
-	public static void sendMessage(MessageType type, float x, float y) throws IOException{			
+	public static boolean sendMessage(MessageType type, float x, float y){			
 		if(bluetoothClient != null){
-			bluetoothClient.send(type, x, y);
+			return bluetoothClient.send(type, x, y);
+		}else {
+			return false;
 		}
 	}
+	
 	
 	/**
 	 * Gets  the BluetoothClient object with the actual connection
@@ -190,6 +206,7 @@ public class BluetoothActivity extends Activity implements IBluetoothObserver {
 	public static BluetoothClient getBluetoothClient(){
 		return bluetoothClient;
 	}
+	
 	
 	/**
 	 * Event Button bSearchDevicesCLick event
@@ -208,6 +225,7 @@ public class BluetoothActivity extends Activity implements IBluetoothObserver {
 			}
 		}
 	}
+	
 	
 	/**
 	 * Event Button bSearchDevicesCLick event
@@ -235,4 +253,13 @@ public class BluetoothActivity extends Activity implements IBluetoothObserver {
 		}
 	}
 	 
+
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+		
+		if(bluetoothClient != null){
+			bluetoothClient.closeConnection();
+		}
+	}
 }
