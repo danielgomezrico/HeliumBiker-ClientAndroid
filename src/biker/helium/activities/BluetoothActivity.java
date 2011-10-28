@@ -16,8 +16,8 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 import biker.helium.Managers.Bluetooth.BluetoothClient;
+import biker.helium.Managers.Bluetooth.BluetoothClient.MessageType;
 import biker.helium.Managers.Bluetooth.IBluetoothObserver;
 import biker.helium.client.R;
 import biker.helium.helpers.UIHelper;
@@ -56,19 +56,21 @@ public class BluetoothActivity extends Activity implements IBluetoothObserver {
 	private void init(){
 		
 		try {
+			bluetoothClient = null;
 			bluetoothClient = new BluetoothClient(this);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
 		
-		//deviceToConnect = null;
-		
 		enableButton(R.id.bSearchDevices, true);
-		enableButton(R.id.bConnectDevice, true);
 		enableProgressBar(false);
 		
-		//setText(R.id.tvSelectedDevice, " ...");
+		if(deviceToConnect != null){
+			enableButton(R.id.bConnectDevice, true);
+			
+		}else{
+			enableButton(R.id.bConnectDevice, false);
+		}
 	}
 	
 	/**
@@ -141,6 +143,15 @@ public class BluetoothActivity extends Activity implements IBluetoothObserver {
 	}
 
 	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+		
+		if(bluetoothClient != null){
+			bluetoothClient.closeConnection();
+		}
+	}
+	
+	@Override
 	public void deviceDiscoveringFinished(final ArrayList<BluetoothDevice> devices) {
 		CharSequence[] nameDevices = new CharSequence[devices.size()];
 
@@ -166,6 +177,12 @@ public class BluetoothActivity extends Activity implements IBluetoothObserver {
 		alert.show();		
 	}
 
+	public static void sendMessage(MessageType type, float x, float y) throws IOException{			
+		if(bluetoothClient != null){
+			bluetoothClient.send(type, x, y);
+		}
+	}
+	
 	/**
 	 * Gets  the BluetoothClient object with the actual connection
 	 * @return
@@ -187,8 +204,7 @@ public class BluetoothActivity extends Activity implements IBluetoothObserver {
 				
 				bluetoothClient.searchDevices();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				UIHelper.showMessageDialog("The bluetooth device can't discover devices", "Error", false, this);
 			}
 		}
 	}
@@ -205,16 +221,12 @@ public class BluetoothActivity extends Activity implements IBluetoothObserver {
 
 				enableProgressBar(true);
 				
-				
 				bluetoothClient.manageConnection(deviceToConnect);
 				
 				changeActivity();
 				
 			} catch (IOException e) {
-				// TODO Imprimir un mensaje con el error
-				Toast.makeText(getApplicationContext(), "There was an error connecting with the bluetooth device", Toast.LENGTH_LONG);
-				
-				UIHelper.showMessageDialog("Error connecting with the bluetooth pc", "Error", false, this);
+				UIHelper.showMessageDialog("The PC Bluetooth is not ready. Please check your PC", "Error", false, this);
 				
 				enableButton(R.id.bSearchDevices, true);
 				enableButton(R.id.bConnectDevice, true);

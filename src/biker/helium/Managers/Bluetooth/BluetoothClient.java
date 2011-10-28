@@ -13,7 +13,7 @@ public class BluetoothClient extends BluetoothManager {
 	 * Reference a type of a message
 	 */
 	public enum MessageType {
-		  A, S
+		  A, P, S
 		}
 	
 	public BluetoothClient(BluetoothActivity mainActivity) throws IOException {
@@ -44,7 +44,7 @@ public class BluetoothClient extends BluetoothManager {
 	 * @throws IOException
 	 * @throws Exception
 	 */
-	public void send(MessageType type, float x, float y) throws IOException, Exception{
+	public void send(MessageType type, float x, float y) throws IOException{
 		String message = new StringBuilder(type.toString()).append(' ').append(y).append(' ').append(x).toString();
 
 		if(message.length() < MESSAGE_SIZE){

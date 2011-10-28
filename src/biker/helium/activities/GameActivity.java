@@ -9,10 +9,9 @@ import android.os.Bundle;
 import android.view.KeyEvent;
 import android.view.Window;
 import android.view.WindowManager;
-import biker.helium.Managers.AccelerometerManager;
-import biker.helium.Managers.IAccelerometerObserver;
-import biker.helium.Managers.Bluetooth.BluetoothClient;
 import biker.helium.Managers.Bluetooth.BluetoothClient.MessageType;
+import biker.helium.Managers.acceleromether.AccelerometerManager;
+import biker.helium.Managers.acceleromether.IAccelerometerObserver;
 import biker.helium.view.DrawableView;
 
 public class GameActivity extends Activity implements IAccelerometerObserver  {
@@ -44,6 +43,8 @@ public class GameActivity extends Activity implements IAccelerometerObserver  {
     	if(accelManager != null){
     		accelManager.startListen();
     	}
+    	
+    	//TODO:Enviar mensaje de resumir por bluetooth
     }
 
     @Override
@@ -53,6 +54,9 @@ public class GameActivity extends Activity implements IAccelerometerObserver  {
     	if(accelManager!= null){
     		accelManager.stopListen();
     	}
+    	
+    	//TODO:Enviar mensaje de pausa por bluetooth
+
     }
    
     @Override
@@ -63,7 +67,7 @@ public class GameActivity extends Activity implements IAccelerometerObserver  {
     
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-        if (keyCode == KeyEvent.KEYCODE_BACK) {
+        if (keyCode == KeyEvent.KEYCODE_BACK) {//Go back to BluetoothActivitys
         	
         	AlertDialog.Builder builder = new AlertDialog.Builder(this);
         	builder.setMessage("ÀAre you sure you want to go to bluetooth window? (The actual connection will be lost)")
@@ -93,13 +97,22 @@ public class GameActivity extends Activity implements IAccelerometerObserver  {
 	@Override
 	public void changeAcceleromether(float x, float y) {
 		try {
-			BluetoothClient bluetoothClient = BluetoothActivity.getBluetoothClient();
-			if(bluetoothClient != null){
-				bluetoothClient.send(MessageType.A, y, x);//Becouse the cellphone is landscape
-			}
-		} 
-		catch (IOException e) {} 
-		catch (Exception e) {}
+			BluetoothActivity.sendMessage(MessageType.A, y, x);
+		} catch (IOException e) {
+			AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        	builder.setMessage("The connection is lost")
+        	       .setCancelable(false)
+        	       .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+        	           public void onClick(DialogInterface dialog, int id) {
+        	               //moveTaskToBack(true);
+        	        	   finish();
+        	           }
+        	       });
+        	
+        	AlertDialog alert = builder.create();
+        	alert.setCancelable(false);
+			alert.show();
+		}
 	}
 
     

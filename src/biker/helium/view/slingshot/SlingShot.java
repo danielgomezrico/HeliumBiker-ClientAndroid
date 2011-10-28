@@ -1,104 +1,176 @@
 package biker.helium.view.slingshot;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+
 import android.content.res.Resources;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import biker.helium.client.R;
+import biker.helium.Managers.Bluetooth.BluetoothClient.MessageType;
+import biker.helium.activities.BluetoothActivity;
 
 public class SlingShot{
+	public static final float BORDER_OFFSET = 15;
+	public static final int TIME_NEW_PICKEABLE_STONE = 500;//ms
+	
 	public final float INITIAL_X, INITIAL_Y;
+	public final int SCREEN_WIDTH, SCREEN_HEIGHT;
 
+	public Resources resources;
 	private Paint paint;
-
-	private boolean animate = false;
-
-	private float x2, y2;
-	private Bitmap stone;
-
+	private boolean isAnimating;
+	private float newX, newY;
+	private Stone pickeableStone;
+	private boolean stoneThrowed;//If the stone had been threw actually
+	private ArrayList<Stone> arrayListThrowedStones;
 
 	public SlingShot(Resources resources, int screenWidth, int screenHeight){
 		INITIAL_X = screenWidth/2;
 		INITIAL_Y = screenHeight/2;
 
-		x2 = INITIAL_X - 10;
-		y2 = INITIAL_Y - 10;
-
-		stone = BitmapFactory.decodeResource(resources, R.drawable.stone);
-
+		SCREEN_WIDTH = screenWidth;
+		SCREEN_HEIGHT = screenHeight;
+		
+		newX = INITIAL_X - 10;
+		newY = INITIAL_Y - 10;
+		
+		this.resources = resources;
+		
+		isAnimating = false;
+				
 		paint = new Paint();
-		paint.setColor(Color.WHITE);		
+		paint.setColor(Color.WHITE);
+		
+//		stone = BitmapFactory.decodeResource(resources, R.drawable.stone);
+		arrayListThrowedStones = new ArrayList<Stone>();
+		pickeableStone = new Stone(this, INITIAL_X, INITIAL_Y,SCREEN_WIDTH, SCREEN_HEIGHT);
 	}
 
-	public float getX2() {
-		return x2;
-	}
-
-	public void setX2(float x2) {
-		this.x2 = x2;
-	}
-
-	public float getY2() {
-		return y2;
-	}
-
-	public void setY2(float y2) {
-		if(y2 < INITIAL_Y){
-			this.y2 = y2;
+	public void setNewX(float newX) {
+		if(!stoneThrowed){
+			this.newX = newX;
+			if(pickeableStone != null){
+				pickeableStone.setNewX(newX);
+			}
 		}
 	}
 
-	
-	public void draw(Canvas canvas){
-		canvas.drawLine(INITIAL_X, INITIAL_Y, getX2(), getY2(), paint);
-		canvas.drawBitmap(stone, x2 - (stone.getWidth() / 2), y2 - (stone.getHeight() / 2), null);
-	}
-
-	
-	public void startBackAnimation(){
-		animate = true;
-		new Thread(new Runnable() {
-			@Override
-			public void run() {
-
-				double angle = calcDirectorAngle();
-				double offsetX = 1;
-				double offsetY = 1;
-				int delay = (int) (y2)/10;//4 Cuadrant
-
-				if(x2 > INITIAL_X){
-					offsetX *= -1;
-					//delay = (int)(y2)/10;
-				}
-
-				while(animate){
-
-					x2 += (float)( Math.cos(angle) * offsetX);
-					y2 += (float)( Math.sin(angle) * offsetY);
-
-					if(x2 >= INITIAL_X && INITIAL_Y + (offsetY)*y2 >= 0){
-
-						y2 = INITIAL_Y;
-						x2 = INITIAL_X;
-						animate = false;
-					}					
-
-					try {
-						Thread.sleep(delay);
-					} catch (InterruptedException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
+	public void setNewY(float newY) {
+		if(!stoneThrowed){
+			if(newY < INITIAL_Y - BORDER_OFFSET){
+				this.newY = newY;
+				if(pickeableStone != null){
+					pickeableStone.setNewY(newY);
 				}
 			}
-		}).start();
+		}
 	}
 
+	public void draw(Canvas canvas){
+		synchronized (arrayListThrowedStones) {
+			for (Stone stone : arrayListThrowedStones) {
+				stone.draw(canvas);
+			}
+		}
+		
+		if(pickeableStone != null){
+			canvas.drawLine(INITIAL_X, INITIAL_Y, newX, newY, paint);
+
+			pickeableStone.draw(canvas);
+		}
+	}
+
+	public void startBackAnimation(){
+		if(!isAnimating && pickeableStone != null){
+			isAnimating = true;
+			stoneThrowed = true;
+			
+//			SlingShot me = this;
+			
+			//Variable to send in bluetooth message
+			final float threwX = newX;
+			final float threwY = newY;
+			
+			new Thread(new Runnable() {
+				@Override
+				public void run() {
+					
+					//Calc movement variables
+					double angle = calcDirectorAngle();
+					double operator = 1; //Says if must plus or substract for the newX
+					int delay = 2;
+	
+					if(newX > INITIAL_X){
+						operator *= -1;
+					}
+	
+					while(isAnimating){
+						
+						newX = newX + (float)( Math.cos(angle) * operator) ;
+						newY = newY + (float)( Math.sin(angle)) ;
+						
+						pickeableStone.setNewXNewY(newX, newY);
+						
+						if(newX >= INITIAL_X && INITIAL_Y + newY >= 0){//End of pull area
+
+							pickeableStone.startBackAnimation(angle, delay, operator);
+							arrayListThrowedStones.add(pickeableStone);
+							pickeableStone = null;
+	
+							scheduleNewStone();
+							
+							try {
+								BluetoothActivity.sendMessage(MessageType.S, INITIAL_X - threwX, INITIAL_Y - threwY);
+							} catch (IOException e) {
+//								GameActivity already manage this error
+							} 
+							
+							isAnimating = false;
+						}					
+						else{
+							try {
+								Thread.sleep(delay);
+							} catch (InterruptedException e) {
+								// TODO Auto-generated catch block
+								//e.printStackTrace();
+							}
+						}
+					}
+				}
+
+				
+			}).start();
+		}
+	}
+	
+	/**
+	 * Initialize pickeableStone variable
+	 */
+	private void initPickeableStone(){
+		newX = INITIAL_X;
+		newY = INITIAL_Y;
+		pickeableStone = new Stone(this, INITIAL_X, INITIAL_Y,SCREEN_WIDTH, SCREEN_HEIGHT);
+		stoneThrowed = false;
+	}
+
+	/**
+	 * Schedule the initialization of a new pickeableStone in TIME_NEW_PICKEABLE_STONE
+	 */
+	public void scheduleNewStone(){
+		Executors.newScheduledThreadPool(1).schedule(new Runnable(){
+		    @Override
+		    public void run(){
+		    	initPickeableStone();
+		    }
+		}, TIME_NEW_PICKEABLE_STONE, TimeUnit.MILLISECONDS);
+	}
+	
 	public double calcDirectorAngle(){
 
-		double angle = Math.atan2( INITIAL_Y - y2, INITIAL_X - x2 );  //* 180/Math.PI;//+ (Math.PI);
+		double angle = Math.atan2( INITIAL_Y - newY, INITIAL_X - newX );  //* 180/Math.PI;//+ (Math.PI);
 
 		if(angle > Math.toRadians(90)){
 			angle = Math.toRadians(180) - angle;
@@ -108,9 +180,14 @@ public class SlingShot{
 	}
 
 	public void stopBackAnimation(){
-		animate = false;
+		isAnimating = false;
 	}
 
+	public void removeStone(Stone stone){
+		synchronized (arrayListThrowedStones) {
+			arrayListThrowedStones.remove(stone);
+		}
+	}
 
 
 }

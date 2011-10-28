@@ -1,6 +1,7 @@
 package biker.helium.Managers.Bluetooth;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.UUID;
@@ -30,6 +31,8 @@ public abstract class BluetoothManager {
 	private ArrayList<BluetoothDevice> arrayListDevices;
 	private BluetoothSocket serverSocket;
 	private OutputStream outputStream;
+	private int connectionTries;
+
 	
 	// Create a BroadcastReceiver for ACTION_FOUND and ACTION_DISCOVERY_FINISHED
 	protected final BroadcastReceiver devicesSearcher = new BroadcastReceiver() {
@@ -49,6 +52,10 @@ public abstract class BluetoothManager {
 			        
 			        if(BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)){
 			        	mBluetoothAdapter.cancelDiscovery();
+
+			    		//Unregister the
+			    		((Activity)mainActivity).unregisterReceiver(devicesSearcher);
+			    		
 			        	mainActivity.deviceDiscoveringFinished(arrayListDevices);
 			        }
 			    }
@@ -56,7 +63,7 @@ public abstract class BluetoothManager {
 	
 	public BluetoothManager(IBluetoothObserver mainActivity) throws IOException{
 		mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-		
+		connectionTries = 0;
 		this.mainActivity = mainActivity;
 		
 		if (mBluetoothAdapter != null) {
@@ -79,14 +86,25 @@ public abstract class BluetoothManager {
 	 * @throws Exception
 	 * @throws IOException
 	 */
-	protected void sendMessage(String message) throws Exception, IOException {				
-		if(outputStream != null){
-			
-			byte[] buffer = message.getBytes();
-			outputStream.write(buffer);
-			
-		}else{
-			throw new Exception("OutputStream is null, the message is not sended");
+	protected void sendMessage(String message) throws IOException {
+		synchronized (this) {
+			try{
+				if(outputStream != null){
+					byte[] buffer = message.getBytes();
+
+					outputStream.write(buffer);
+					connectionTries = 0;
+				}
+			}catch (IOException e) {
+				//closeConnection();
+				connectionTries++;
+
+				if(connectionTries == 5){
+					outputStream = null;
+				}else{
+					//throw e;
+				}
+			}
 		}
 	}
 	
@@ -96,22 +114,14 @@ public abstract class BluetoothManager {
 	 * @throws IOException
 	 */
 	public void searchDevices() throws IOException{
-//		Set<BluetoothDevice> pairedDevices = mBluetoothAdapter.getBondedDevices();
-		
-		// If there are paired devices
-//		if (pairedDevices.size() > 0) {
-//			for (BluetoothDevice device : pairedDevices) {
-//		    	return device;		    	
-//		    }
-//		}
 		arrayListDevices = new ArrayList<BluetoothDevice>();
 
-		// Register the BroadcastReceiver
+		// Register the BroadcastReceiver to discover
 		IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
 		filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
-		
-		//TODO: Unregister on destroy
 		((Activity)mainActivity).registerReceiver(devicesSearcher, filter); // Don't forget to unregister during onDestroy
+	
+		
 		mBluetoothAdapter.startDiscovery();
 	}
 	
@@ -129,13 +139,13 @@ public abstract class BluetoothManager {
 				if(serverSocket != null){
 				
 					outputStream = serverSocket.getOutputStream();
-				
+					
 				}else{
-					//TODO: trhow exceptions
+					//TODO: throw exceptions
 					//throw new IOException("");
 				}
 			}else{
-				//TODO: trhow exceptions
+				//TODO: throw exceptions
 				//throw new IOException("");
 			}
 		}
@@ -155,6 +165,13 @@ public abstract class BluetoothManager {
 				outputStream = null;
 			} catch (IOException e) {}
 		}
+
+//		if(inputStream != null){
+//			try {
+//				inputStream.close();
+//				inputStream = null;
+//			} catch (IOException e) {}
+//		}
 		
 		if(serverSocket != null){
 			try {
@@ -177,7 +194,7 @@ public abstract class BluetoothManager {
 		    enableBtIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 1);
 	
 		    mainActivity.startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
-		}
+		  }
 	}
 	
 	/**
