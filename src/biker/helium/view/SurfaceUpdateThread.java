@@ -1,7 +1,6 @@
 package biker.helium.view;
 
 import android.graphics.Canvas;
-import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 /**
@@ -25,7 +24,6 @@ public class SurfaceUpdateThread extends Thread {
     public void run() {
         Canvas c;
         while (_run) {
-        	Log.d("**P: RUN:", String.valueOf( _run) );
             c = null;
             try {
                 c = _surfaceHolder.lockCanvas(null);

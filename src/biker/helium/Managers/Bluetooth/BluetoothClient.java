@@ -44,7 +44,7 @@ public class BluetoothClient extends BluetoothManager {
 	 */
 	public boolean send(MessageType type, float x, float y){
 		String message = new StringBuilder(type.toString()).append(' ').append(y).append(' ').append(x).toString();
-
+//		Log.d("**P", String.valueOf(message.length()) + " " + message);
 		if(message.length() < MESSAGE_SIZE){
 			message = fillMessage(message);
 		}

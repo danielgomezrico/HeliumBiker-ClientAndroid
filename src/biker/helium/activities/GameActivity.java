@@ -16,6 +16,9 @@ public class GameActivity extends Activity implements IAccelerometerObserver  {
 	
 	private AccelerometerManager accelManager;
 	
+	private enum Direction {Left, Right, Center, Up, Down}
+	private Direction lastDirection;
+	
 	/**
 	 * Used to control the times that the GameActivity shows a message in changeAcceleromether(...)
 	 * in case that the message was not sended successfully thought bluetooth
@@ -67,7 +70,6 @@ public class GameActivity extends Activity implements IAccelerometerObserver  {
     		accelManager.stopListen();
     	}
     	
-
     	super.onPause();
 
     	//TODO:Enviar mensaje de pausa por bluetooth
@@ -107,29 +109,71 @@ public class GameActivity extends Activity implements IAccelerometerObserver  {
         return super.onKeyDown(keyCode, event);
     }
     
+    
+    /**
+     * If the new accelerometers values make a change in the direction and send a message with the accelerometers
+     */
 	@Override
 	public void changeAcceleromether(float x, float y) {
 		
-		boolean success = BluetoothActivity.sendMessage(MessageType.A, y, x);
+		if(changedDirection(y,x)){
+			boolean success = BluetoothActivity.sendMessage(MessageType.A, y, x);
 
-		if(!(success || attemptedShowMessage)){//If not successfully sended and it's the first intend to show this message
-			
-			attemptedShowMessage = true;
-			
-			AlertDialog.Builder builder = new AlertDialog.Builder(this);
-			builder.setMessage("The bluetooth connection is lost. Correct the connection problem and connect again")
-			.setCancelable(false)
-			.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-				public void onClick(DialogInterface dialog, int id) {
-					finish();
-				}
-			});
-
-			AlertDialog alert = builder.create();
-			alert.setCancelable(false);
-			alert.show();
-			
+			if(!(success || attemptedShowMessage)){//If not successfully sended and it's the first intend to show this message
+				
+				attemptedShowMessage = true;
+				
+				AlertDialog.Builder builder = new AlertDialog.Builder(this);
+				builder.setMessage("The bluetooth connection is lost. Correct the connection problem and connect again")
+				.setCancelable(false)
+				.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+					public void onClick(DialogInterface dialog, int id) {
+						finish();
+					}
+				});
+	
+				AlertDialog alert = builder.create();
+				alert.setCancelable(false);
+				alert.show();
+				
+			}
 		}
+	}
+	
+	/**
+	 * Check if the new acceleration values make a change in the direction
+	 * @param accelX
+	 * @param accelY
+	 * @return
+	 */
+	public boolean changedDirection(float accelX, float accelY){
+		
+		Direction newDirection = Direction.Center;
+		
+		if (accelX < -3)
+        {
+			newDirection = Direction.Left;
+		}
+        else if (accelX > 1)
+        {
+        	newDirection = Direction.Right;
+        }
+        else if (accelY > 3)
+        {
+        	newDirection = Direction.Up;
+        }
+        else if (accelY < -4)
+        {
+        	newDirection = Direction.Down;
+        }
+        
+        if(newDirection != lastDirection){
+            lastDirection = newDirection;
+            return true;
+        }
+        else{
+        	return false;
+        }
 	}
 
 }
