@@ -2,8 +2,6 @@ package biker.helium.Managers.Bluetooth;
 
 import java.io.IOException;
 
-import biker.helium.activities.BluetoothActivity;
-
 
 public class BluetoothClient extends BluetoothManager {
 
@@ -16,7 +14,7 @@ public class BluetoothClient extends BluetoothManager {
 		  A, P, S
 		}
 	
-	public BluetoothClient(BluetoothActivity mainActivity) throws IOException {
+	public BluetoothClient(IBluetoothObserver mainActivity) throws IOException {
 		super(mainActivity);
 	}
 	

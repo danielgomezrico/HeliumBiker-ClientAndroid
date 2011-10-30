@@ -27,7 +27,6 @@ public class GameView extends SurfaceView implements OnTouchListener, SurfaceHol
 	public GameView(Context context) {
 		super(context);
 		getHolder().addCallback(this);
-        updateThread = new SurfaceUpdateThread(this);
         
         Display display = ((WindowManager) context.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
         DISPLAY_WIDTH = display.getWidth();
@@ -80,8 +79,9 @@ public class GameView extends SurfaceView implements OnTouchListener, SurfaceHol
 
 	@Override
 	public void surfaceCreated(SurfaceHolder arg0) {
-		updateThread.setRunning(true);
-		updateThread.start();	
+        updateThread = new SurfaceUpdateThread(this);
+        updateThread.setRunning(true);
+        updateThread.start();	
 	}
 
 	@Override

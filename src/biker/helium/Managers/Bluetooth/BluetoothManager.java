@@ -3,6 +3,7 @@ package biker.helium.Managers.Bluetooth;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Set;
 import java.util.UUID;
 
 import android.app.Activity;
@@ -41,11 +42,13 @@ public abstract class BluetoothManager {
 			        // When discovery finds a device
 			        if (BluetoothDevice.ACTION_FOUND.equals(action)) {
 			        	
+			    		mBluetoothAdapter.enable();
+
 			            // Get the BluetoothDevice object from the Intent
-			            BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-			            
-			            // Add the name and address to an array adapter to show in a ListView
-			            arrayListDevices.add(device);
+//			            BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+//			            
+//			            // Add the name and address to an array adapter to show in a ListView
+//			            arrayListDevices.add(device);
 			            
 			        }
 			        
@@ -136,6 +139,27 @@ public abstract class BluetoothManager {
 	}
 	
 	/**
+	 * Search the list of paired devices (devices that was connected in the past)
+	 * @return list of paired devices
+	 * @throws IOException
+	 */
+	public ArrayList<BluetoothDevice> searchPairedDevices() throws IOException{
+		ArrayList<BluetoothDevice> devices = new ArrayList<BluetoothDevice>();
+
+		Set<BluetoothDevice> pairedDevices = mBluetoothAdapter.getBondedDevices();
+		// If there are paired devices
+		if (pairedDevices.size() > 0) {
+		    // Loop through paired devices
+		    for (BluetoothDevice device : pairedDevices) {
+		        // Add the name and address to an array adapter to show in a ListView
+		    	devices.add(device);
+		    }
+		}
+		
+		return devices;
+	}
+	
+	/**
 	 * Search Bluetooth Devices asynchronously that will be received by the
 	 * BluetoothObserver in deviceDiscoveringFinished
 	 * @throws IOException
@@ -154,7 +178,8 @@ public abstract class BluetoothManager {
 	/**
 	 * Manage the bluetooth connection with the device
 	 * only if the bluetooth adapter is enabled
-	 * @throws IOException 
+	 * @param server end point of the communication
+	 * @throws IOException
 	 */
 	public void manageConnection(BluetoothDevice server) throws IOException{
 		
@@ -166,16 +191,17 @@ public abstract class BluetoothManager {
 					outputStream = serverSocket.getOutputStream();
 					
 				}else{
-					//TODO: throw exceptions
-					//throw new IOException("");
+					//TODO: cambiar mensajes
+					throw new IOException("Bluetooth connection can't be done. Please check if the game is running and is waiting to connect");
+
 				}
 			}else{
-				//TODO: throw exceptions
-				//throw new IOException("");
+				//TODO: cambiar mensajes
+				throw new IOException("Bluetooth connection can't be done. Please check if the game is running and is waiting to connect");
 			}
 		}
 		else{
-			throw new IOException("The bluetooth adpater is not enabled or there was an error connecting with the device");
+			throw new IOException("Bluetooth connection can't be done. Please check if the game is running and is waiting to connect");
 		}
 	}
 
@@ -215,14 +241,14 @@ public abstract class BluetoothManager {
 	}
 	
 	/**
-	 * Check if the bluetooth adapter is enabled
-	 * @return true if yes false if not
+	 * Intent to disable the bluetooth adapter
+	 * @param mainActivity
 	 */
-	public boolean adapterEnabled(){
-		if(mBluetoothAdapter != null){
-			return mBluetoothAdapter.isEnabled();
-		}else{
-			return false;
+	public void disableBluetoothAdapter(Activity mainActivity){
+		if(mBluetoothAdapter != null && !mBluetoothAdapter.isEnabled()){
+			mBluetoothAdapter.disable();
 		}
 	}
+	
+
 }

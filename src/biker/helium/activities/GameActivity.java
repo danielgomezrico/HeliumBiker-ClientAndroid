@@ -26,6 +26,8 @@ public class GameActivity extends Activity implements IAccelerometerObserver  {
 	 */
 	private boolean attemptedShowMessage;
 	
+	private GameView gameView;
+	
     /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -42,29 +44,32 @@ public class GameActivity extends Activity implements IAccelerometerObserver  {
 			accelManager = new AccelerometerManager(this);
 		} catch (Exception e) {	}
         
-        setContentView(new GameView(this.getBaseContext()));
+        gameView = new GameView(this.getBaseContext());
+        setContentView(gameView);
     }
         
     @Override
     protected void onResume() {
-    	super.onResume();
     	
     	if(accelManager != null){
     		accelManager.startListen();
     	}
     	
+    	super.onResume();
     	
     	//TODO:Enviar mensaje de resumir por bluetooth
     }
 
     @Override
     protected void onPause() {
-    	super.onPause();
    
     	if(accelManager!= null){
     		accelManager.stopListen();
     	}
     	
+
+    	super.onPause();
+
     	//TODO:Enviar mensaje de pausa por bluetooth
 
     }
@@ -77,7 +82,7 @@ public class GameActivity extends Activity implements IAccelerometerObserver  {
     
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-        if (keyCode == KeyEvent.KEYCODE_BACK) {//Go back to BluetoothActivitys
+        if (keyCode == KeyEvent.KEYCODE_BACK) {//Go back to BluetoothActivity
         	
         	AlertDialog.Builder builder = new AlertDialog.Builder(this);
         	builder.setMessage("ÀAre you sure you want to go to bluetooth window? (The actual connection will be lost)")
@@ -124,10 +129,7 @@ public class GameActivity extends Activity implements IAccelerometerObserver  {
 			alert.setCancelable(false);
 			alert.show();
 			
-			
 		}
-
 	}
-
 
 }

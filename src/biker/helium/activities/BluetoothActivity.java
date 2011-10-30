@@ -10,12 +10,14 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Looper;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 import biker.helium.Managers.Bluetooth.BluetoothClient;
 import biker.helium.Managers.Bluetooth.BluetoothClient.MessageType;
 import biker.helium.Managers.Bluetooth.IBluetoothObserver;
@@ -30,8 +32,12 @@ public class BluetoothActivity extends Activity implements IBluetoothObserver {
 	 */
 	private static BluetoothClient bluetoothClient;
 	
+	/**
+	 * Bluetooth device selected by the user to connect and send messages
+	 */
 	public BluetoothDevice deviceToConnect;
 
+//	****************************** ON... *********************************
 	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -42,7 +48,6 @@ public class BluetoothActivity extends Activity implements IBluetoothObserver {
 		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, 
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
-        
 
         try {
 			bluetoothClient = new BluetoothClient(this);
@@ -57,21 +62,12 @@ public class BluetoothActivity extends Activity implements IBluetoothObserver {
 	protected void onResume() {		
 		super.onResume();
 		
-		init();
-	}
-	
-	private void init(){
-//		
-//		try {
-//			bluetoothClient = null;
-//			bluetoothClient = new BluetoothClient(this);
-//		} catch (IOException e) {
-//			// TODO Auto-generated catch block
-//		}
-		
-//		TODO:No se sabe si dejarlo o no
+//		TODO:Cambiar mensaje
+		Toast.makeText(BluetoothActivity.this,"Select your PC",Toast.LENGTH_LONG).show();
+
 		bluetoothClient.closeConnection();
 		
+		enableButton(R.id.bSearchPairedDevices, true);
 		enableButton(R.id.bSearchDevices, true);
 		enableProgressBar(false);
 		
@@ -83,22 +79,17 @@ public class BluetoothActivity extends Activity implements IBluetoothObserver {
 		}
 	}
 	
-	/**
-	 * Launch the GameActivity
-	 */
-	private void changeActivity(){
-		Context context = getApplicationContext();
+	@Override
+	protected void onDestroy() {
+		if(bluetoothClient != null){
+			bluetoothClient.closeConnection();
+		}
 		
-		Intent myIntent = new Intent(context, GameActivity.class);
-		myIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-		context.startActivity(myIntent);
-		
-		enableButton(R.id.bSearchDevices, true);
-		enableButton(R.id.bConnectDevice, true);
-		enableProgressBar(false);
+		super.onDestroy();
 	}
+//	**********************************************************************
 	
-//	********* Views modifications *********
+//	************************* UI CHANGES *********************************
 	/**
 	 * Enable or disable the Button with id = id (R...)
 	 * @param id
@@ -128,8 +119,128 @@ public class BluetoothActivity extends Activity implements IBluetoothObserver {
 		final TextView textView = (TextView) findViewById(id);
 		textView.setText(text);
 	}
+//	**********************************************************************
 
-//	**************************************
+//	************************** UI Events *********************************
+	/**
+	 * Event Button bSearchDevicesCLick event
+	 * @param view
+	 */
+	public void bSearchPairedDevicesClick(View view) {
+		if(bluetoothClient != null){
+			try {
+				deviceDiscoveringFinished(bluetoothClient.searchPairedDevices());
+			} catch (IOException e) {
+				UIHelper.showMessageDialog("The bluetooth device can't discover devices", "Error", false, this);
+			}
+		}
+	}
+	 
+	/**
+	 * Event Button bSearchDevicesCLick event
+	 * @param view
+	 */
+	public void bSearchDevicesClick(View view) {
+		if(bluetoothClient != null){
+			try {
+				enableButton(R.id.bSearchDevices, false);
+				enableButton(R.id.bSearchPairedDevices, false);
+				enableButton(R.id.bConnectDevice, false);
+
+				enableProgressBar(true);
+				
+				bluetoothClient.searchDevices();
+			} catch (IOException e) {
+				UIHelper.showMessageDialog("The bluetooth device can't discover devices", "Error", false, this);
+			}
+		}
+	}
+	
+	/**
+	 * Event Button bSearchDevicesCLick event
+	 * @param view
+	 */
+	public void bConnectClick(View view) {
+		if(bluetoothClient != null){
+			
+				enableButton(R.id.bSearchDevices, false);
+				enableButton(R.id.bSearchPairedDevices, false);
+				enableButton(R.id.bConnectDevice, false);
+
+				enableProgressBar(true);
+				try{
+					bluetoothClient.manageConnection(deviceToConnect);
+
+					changeActivity();
+				} catch (IOException e) {
+					UIHelper.showMessageDialog("The PC Bluetooth is not ready. Please check your PC", "Error", false, this);
+					enableButton(R.id.bSearchDevices, true);
+					enableButton(R.id.bSearchPairedDevices, true);
+					enableButton(R.id.bConnectDevice, true);
+
+					enableProgressBar(false);
+				}
+		}
+	}
+//	**********************************************************************
+	
+	/**
+	 * Launch the GameActivity
+	 */
+	private void changeActivity(){
+		Context context = getApplicationContext();
+		
+		Intent myIntent = new Intent(context, GameActivity.class);
+		myIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+		context.startActivity(myIntent);
+		
+		enableButton(R.id.bSearchDevices, true);
+		enableButton(R.id.bConnectDevice, true);
+		enableProgressBar(false);
+	}
+	
+	/**
+	 * Show a list selector with each device and set the selected device to
+	 * @see #deviceToConnect
+	 */
+	@Override
+	public void deviceDiscoveringFinished(final ArrayList<BluetoothDevice> devices) {
+		if(devices.size() > 0){
+			CharSequence[] nameDevices = new CharSequence[devices.size()];
+
+			for (int i = 0; i < nameDevices.length; i++) {
+				nameDevices[i] = devices.get(i).getName(); 
+			}
+
+			enableButton(R.id.bConnectDevice, false);
+			enableProgressBar(false);
+
+			AlertDialog.Builder builder = new AlertDialog.Builder(this);
+			builder.setTitle("Pick your PC Bluetooth Device Name");
+			builder.setItems(nameDevices, new DialogInterface.OnClickListener() {
+				public void onClick(DialogInterface dialog, int item) {
+					deviceToConnect = devices.get(item);
+
+					setText(R.id.tvSelectedDevice, deviceToConnect.getName());
+
+					enableButton(R.id.bSearchDevices, true);
+					enableButton(R.id.bConnectDevice, true);
+					enableProgressBar(false);
+				}
+			});
+			AlertDialog alert = builder.create();
+			alert.show();		
+		}else{
+			Toast.makeText(BluetoothActivity.this,"There's no devices to show.",Toast.LENGTH_LONG).show();
+			
+			enableButton(R.id.bSearchDevices, true);
+			enableButton(R.id.bSearchPairedDevices, true);
+			enableButton(R.id.bConnectDevice, false);
+			enableProgressBar(false);
+
+
+		}
+	}
 	
 	/**
 	 * Called when the intent to enable bluetooth ends
@@ -157,32 +268,6 @@ public class BluetoothActivity extends Activity implements IBluetoothObserver {
 		super.onActivityResult(requestCode, resultCode, data);
 	}
 	
-	@Override
-	public void deviceDiscoveringFinished(final ArrayList<BluetoothDevice> devices) {
-		CharSequence[] nameDevices = new CharSequence[devices.size()];
-
-		for (int i = 0; i < nameDevices.length; i++) {
-			nameDevices[i] = devices.get(i).getName(); 
-		}
-
-		AlertDialog.Builder builder = new AlertDialog.Builder(this);
-		builder.setTitle("Pick your PC Bluetooth Device Name");
-		builder.setItems(nameDevices, new DialogInterface.OnClickListener() {
-			public void onClick(DialogInterface dialog, int item) {
-				deviceToConnect = devices.get(item);
-
-				setText(R.id.tvSelectedDevice, deviceToConnect.getName());
-
-				enableButton(R.id.bSearchDevices, true);
-				enableButton(R.id.bConnectDevice, true);
-				enableProgressBar(false);
-			}
-		});
-		AlertDialog alert = builder.create();
-//		alert.setCancelable(false);
-		alert.show();		
-	}
-	
 	/**
 	 * Send a message to the bluetooth server
 	 * @param type
@@ -190,7 +275,6 @@ public class BluetoothActivity extends Activity implements IBluetoothObserver {
 	 * @param y
 	 * @return true if successfully false if not
 	 */
-
 	public static boolean sendMessage(MessageType type, float x, float y){			
 		if(bluetoothClient != null){
 			return bluetoothClient.send(type, x, y);
@@ -198,69 +282,6 @@ public class BluetoothActivity extends Activity implements IBluetoothObserver {
 			return false;
 		}
 	}
-	
-	
-	/**
-	 * Gets  the BluetoothClient object with the actual connection
-	 * @return
-	 */
-	public static BluetoothClient getBluetoothClient(){
-		return bluetoothClient;
-	}
-	
-	
-	/**
-	 * Event Button bSearchDevicesCLick event
-	 * @param view
-	 */
-	public void bSearchDevicesClick(View view) {
-		if(bluetoothClient != null){
-			try {
-				enableButton(R.id.bSearchDevices, false);
-				enableButton(R.id.bConnectDevice, false);
-				enableProgressBar(true);
-				
-				bluetoothClient.searchDevices();
-			} catch (IOException e) {
-				UIHelper.showMessageDialog("The bluetooth device can't discover devices", "Error", false, this);
-			}
-		}
-	}
-	
-	
-	/**
-	 * Event Button bSearchDevicesCLick event
-	 * @param view
-	 */
-	public void bConnectClick(View view) {
-		if(bluetoothClient != null){
-			try {
-				enableButton(R.id.bSearchDevices, false);
-				enableButton(R.id.bConnectDevice, false);
-
-				enableProgressBar(true);
-				
-				bluetoothClient.manageConnection(deviceToConnect);
-				
-				changeActivity();
-				
-			} catch (IOException e) {
-				UIHelper.showMessageDialog("The PC Bluetooth is not ready. Please check your PC", "Error", false, this);
-				
-				enableButton(R.id.bSearchDevices, true);
-				enableButton(R.id.bConnectDevice, true);
-				enableProgressBar(false);
-			}
-		}
-	}
 	 
 
-	@Override
-	protected void onDestroy() {
-		super.onDestroy();
-		
-		if(bluetoothClient != null){
-			bluetoothClient.closeConnection();
-		}
-	}
 }
